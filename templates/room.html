@@ -1,16 +1,60 @@
 {% extends "layout.html" %}
 
 {% block head %}
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/room.js') }}"></script>
+<script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/lib/codemirror.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/javascript/javascript.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/python/python.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/ruby/ruby.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/go/go.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/clike/clike.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/mode/perl/perl.js') }}"></script>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/room.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='codemirror/lib/codemirror.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='codemirror/theme/solarized.css') }}">
 {% endblock %}
 
 {% block body %}
 
-<ul>
-	{% for u in users %}
-	<li>{{ u.name }}
-	{% endfor %}
-</ul>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-8">
+			<div class="row" id="editor">
+				<p><b>User</b>: <span id="user">{{ user.name }}</span></p>
+				<textarea id="code-editor" rows="20" cols="80"></textarea>
+				<div>
+					<button class="btn btn-primary" id="run-code">Run</button>
+					<div class="btn-group">
+						<button class="btn btn-info"><span id="visibleValue">python</span></button>
+						<button class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu" hiddenTag="#hiddenValue" visibleTag="#visibleValue">
+							<li><a href="javascript:void(0)" value="python">python</a></li>
+							<li><a href="javascript:void(0)" value="ruby">ruby</a></li>
+							<li><a href="javascript:void(0)" value="javascript">javascript</a></li>
+							<li><a href="javascript:void(0)" value="c">c</a></li>
+							<li><a href="javascript:void(0)" value="c++">c++</a></li>
+							<li><a href="javascript:void(0)" value="go">go</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<div class="row" id="terminal">
+				<textarea id="console" rows="20" cols="80" readonly></textarea>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="row" id="members">
+				<ul id="user-list">
+				</ul>
+			</div>
+			<div class="row" id="socketio">
+				<textarea rows="20" cols="60" readonly id="socketio-console"></textarea>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="{{ url_for('static', filename='js/room.js') }}"></script>
 
 {% endblock %}

@@ -1,0 +1,24 @@
+.row {
+	border: 1px solid #555;
+}
+
+#editor {
+	min-height: 200px;
+}
+
+#terminal {
+	min-height: 200px;
+}
+
+#members {
+	min-height: 200px;
+}
+
+#socketio {
+	min-height: 200px;
+}
+
+#console {
+	background-color: black;
+	color: white;
+}

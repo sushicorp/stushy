@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 
+import os
 import json
+import subprocess
 from functools import wraps
 from flask import Flask, render_template, session, g, \
                   request, redirect, url_for, flash
@@ -44,7 +46,7 @@ def index():
 
 @app.route('/room/<name>')
 def room(name):
-    users = Room.query.filter_by(name=g.user.room).first().users
+    user = g.user
     return render_template('room.html', **locals())
 
 
@@ -60,12 +62,53 @@ def disconnect():
 
 @socketio.on('success_connect')
 def success_connect(msg):
-    print(msg['room'])
+    #print(msg['room'])
+    #print(msg['user'])
+    users_obj = Room.query.filter_by(name=msg['room']).first().users
     join_room(msg['room'])
     emit('success join room',
-         {'log': 'Successed join room => ' + msg['room']},
+         {'log': 'Successed join room => ' + msg['room'] + ': ' + msg['user'],
+          'users': [u.name for u in users_obj]},
          room = msg['room'])
 
+@socketio.on('run code')
+def run_code(msg):
+    #print(msg['room'])
+    #print(msg['user'])
+    #print(msg['lang'])
+    #print(msg['code'])
+    if msg['lang'] == 'python':
+        ext = '.py'
+    elif msg['lang'] == 'ruby':
+        ext = '.rb'
+    elif msg['lang'] == 'javascript':
+        ext = '.js'
+    elif msg['lang'] == 'go':
+        ext = '.go'
+    elif msg['lang'] == 'c':
+        ext = '.c'
+    elif msg['lang'] == 'c++':
+        ext = '.cpp'
+
+    filename = 'tmp/' + msg['user'] + ext;
+    with open(filename, 'w') as f:
+        f.write(msg['code'])
+
+    cwd = "."
+    cmdline = msg['lang'] + ' ' + filename
+    print(cmdline)
+    p = subprocess.Popen(cmdline, shell=True,
+                         cwd=cwd,
+                         stdin=subprocess.PIPE,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,
+                         close_fds=True)
+    (stdout, stdin) = (p.stdout, p.stdin)
+    r = stdout.read()
+    print(r)
+    emit('run response',
+         {'result': 0, 'user': msg['user'], 'output': r},
+         room = msg['room'])
 
 
 
@@ -112,4 +155,4 @@ def insert_user(name, room):
 if __name__ == '__main__':
     from gevent import monkey
     monkey.patch_all()
-    socketio.run(app)
+    socketio.run(app, port=8080)

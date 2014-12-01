@@ -8,7 +8,7 @@
 	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}">
 	<link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/animate.min.css') }}">
-	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+	<script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
 	{% block head %}
 	{% endblock %}
 </head>
