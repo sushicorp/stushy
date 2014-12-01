@@ -1,5 +1,4 @@
 .row {
-	border: 1px solid #555;
 }
 
 #editor {
@@ -7,6 +6,10 @@
 }
 
 #terminal {
+	min-height: 200px;
+}
+
+#question {
 	min-height: 200px;
 }
 

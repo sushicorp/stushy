@@ -71,23 +71,37 @@ def success_connect(msg):
           'users': [u.name for u in users_obj]},
          room = msg['room'])
 
-@socketio.on('run code')
-def run_code(msg):
+@socketio.on('run end')
+def run_end(msg):
+    emit('run response',
+         {'result': msg['result'], 'user': msg['user']},
+         room = msg['room'])
+
+@app.route('/run', methods=['POST'])
+def run_code():
+    msg = request.json
     #print(msg['room'])
     #print(msg['user'])
     #print(msg['lang'])
     #print(msg['code'])
+    cmd = ""
     if msg['lang'] == 'python':
+        cmd = 'python'
         ext = '.py'
     elif msg['lang'] == 'ruby':
+        cmd = 'ruby'
         ext = '.rb'
     elif msg['lang'] == 'javascript':
+        cmd = 'node'
         ext = '.js'
     elif msg['lang'] == 'go':
+        cmd = 'go build -o ' + 'tmp/' + msg['user']
         ext = '.go'
     elif msg['lang'] == 'c':
+        cmd = 'gcc -o ' + 'tmp/' + msg['user']
         ext = '.c'
     elif msg['lang'] == 'c++':
+        cmd = 'g++ -o ' + 'tmp/' + msg['user']
         ext = '.cpp'
 
     filename = 'tmp/' + msg['user'] + ext;
@@ -95,8 +109,10 @@ def run_code(msg):
         f.write(msg['code'])
 
     cwd = "."
-    cmdline = msg['lang'] + ' ' + filename
-    print(cmdline)
+    cmdline = cmd + ' ' + filename
+    if msg['lang'] == 'go' or msg['lang'] == 'c' or msg['lang'] == 'c++':
+        cmdline += '&& ./'  + 'tmp/' + msg['user']
+    #print(cmdline)
     p = subprocess.Popen(cmdline, shell=True,
                          cwd=cwd,
                          stdin=subprocess.PIPE,
@@ -104,11 +120,9 @@ def run_code(msg):
                          stderr=subprocess.STDOUT,
                          close_fds=True)
     (stdout, stdin) = (p.stdout, p.stdin)
-    r = stdout.read()
-    print(r)
-    emit('run response',
-         {'result': 0, 'user': msg['user'], 'output': r},
-         room = msg['room'])
+
+    return json.dumps({'output': stdout.read(), 'result': 0,
+        'user': msg['user'], 'room': msg['room']})
 
 
 
