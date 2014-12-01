@@ -9,6 +9,11 @@
 <script src="{{ url_for('static', filename='codemirror/mode/go/go.js') }}"></script>
 <script src="{{ url_for('static', filename='codemirror/mode/clike/clike.js') }}"></script>
 <script src="{{ url_for('static', filename='codemirror/mode/perl/perl.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/dialog/dialog.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/search/searchcursor.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/addon/edit/matchbrackets.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/keymap/vim.js') }}"></script>
+<script src="{{ url_for('static', filename='codemirror/keymap/sublime.js') }}"></script>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='css/room.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='codemirror/lib/codemirror.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='codemirror/theme/solarized.css') }}">
@@ -17,10 +22,11 @@
 {% block body %}
 
 <div class="container-fluid">
+	<h4>SushiServiver => <b>User</b>: <span id="user">{{ user.name }}</span></h4>
 	<div class="row">
 		<div class="col-md-8">
+			<h1>Editor</h1>
 			<div class="row" id="editor">
-				<p><b>User</b>: <span id="user">{{ user.name }}</span></p>
 				<textarea id="code-editor" rows="20" cols="80"></textarea>
 				<div>
 					<button class="btn btn-primary" id="run-code">Run</button>
@@ -38,19 +44,34 @@
 							<li><a href="javascript:void(0)" value="go">go</a></li>
 						</ul>
 					</div>
+					<button class="btn" id="vimvimvim">Vim</button>
 				</div>
 			</div>
 			<div class="row" id="terminal">
+				<h1>Console</h1>
 				<textarea id="console" rows="20" cols="80" readonly></textarea>
 			</div>
 		</div>
 		<div class="col-md-4">
 			<div class="row" id="question">
+				<h1>Quest</h1>
+				<button class="btn btn-warning" id="q-prev">prev</button>
+				<button class="btn btn-warning" id="q-next">next</button>
+				<span id="q-id" style='display: none;'>0</span>
+				<div>
+					[Question]: <span id="q-q"></span>
+				</div>
+				<div>
+					<br /><span>[Answer]</span><br />
+					<textarea rows='2' cols='60'id="q-a" readonly onCopy="alert('ゆ　る　さ　な　い'); return false;"></textarea>
+				</div>
 			</div>
 			<div class="row" id="members">
+				<h1>Users and Result</h1>
 				<ul id="user-list"></ul>
 			</div>
 			<div class="row" id="socketio">
+				<h1>Socketio console</h1>
 				<textarea rows="20" cols="60" readonly id="socketio-console"></textarea>
 			</div>
 		</div>

@@ -2,6 +2,7 @@
 
 import os
 import json
+import yaml
 import subprocess
 from functools import wraps
 from flask import Flask, render_template, session, g, \
@@ -67,14 +68,39 @@ def success_connect(msg):
     users_obj = Room.query.filter_by(name=msg['room']).first().users
     join_room(msg['room'])
     emit('success join room',
-         {'log': 'Successed join room => ' + msg['room'] + ': ' + msg['user'],
-          'users': [u.name for u in users_obj]},
+         {'log': '[' + msg['user'] + '] : Joined room => ' + msg['room'],
+          'users': [u.name for u in users_obj],
+          'points': [u.point for u in users_obj]},
          room = msg['room'])
 
 @socketio.on('run end')
 def run_end(msg):
+    users_obj = Room.query.filter_by(name=msg['room']).first().users
     emit('run response',
-         {'result': msg['result'], 'user': msg['user']},
+         {'result': msg['result'], 'user': msg['user'],
+          'users': [u.name for u in users_obj],
+          'points': [u.point for u in users_obj]},
+         room = msg['room'])
+
+@socketio.on('quest next')
+def quest_next(msg):
+    l = len(Quest.query.all())
+    n = int(msg['n'])
+    if l < n:
+        return
+    q = Quest.query.get(n)
+    emit('quest update',
+         {'q': q.q, 'a': q.a, 'id': q.id},
+         room = msg['room'])
+
+@socketio.on('quest prev')
+def quest_next(msg):
+    n = int(msg['n'])
+    if n < 1:
+        return
+    q = Quest.query.get(n)
+    emit('quest update',
+         {'q': q.q, 'a': q.a, 'id': q.id},
          room = msg['room'])
 
 @app.route('/run', methods=['POST'])
@@ -121,10 +147,34 @@ def run_code():
                          close_fds=True)
     (stdout, stdin) = (p.stdout, p.stdin)
 
-    return json.dumps({'output': stdout.read(), 'result': 0,
+    answer = stdout.read()
+    result = -1
+    if msg['q-id'] > 0:
+        q = Quest.query.get(msg['q-id'])
+        print(answer)
+        print(q.a)
+        if q.a.rstrip() == answer.rstrip():
+            result = 1
+            u = User.query.filter_by(name=msg['user']).first()
+            u.point += 1
+            db_session.commit()
+        else:
+            result = 0
+
+    return json.dumps({'output': answer, 'result': result,
         'user': msg['user'], 'room': msg['room']})
 
 
+
+
+class Quest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    q = db.Column(db.Text)
+    a = db.Column(db.Text)
+    
+    def __init__(self, q, a):
+        self.q = q
+        self.a = a
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -163,8 +213,18 @@ def insert_user(name, room):
 
     return u, r
 
+def add_quest(file):
+    with open(file, 'r') as f:
+        data = yaml.load(f)
+        q = Quest(data['q'], data['a'])
+        db_session.add(q)
+        db_session.commit()
 
-
+def delete_quest():
+    qs = Quest.query.all()
+    for q in qs:
+        db_session.delete(q)
+        db_session.commit()
 
 if __name__ == '__main__':
     from gevent import monkey
