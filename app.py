@@ -229,4 +229,4 @@ def delete_quest():
 if __name__ == '__main__':
     from gevent import monkey
     monkey.patch_all()
-    socketio.run(app, port=8080)
+    socketio.run(app, host="192.168.5.44")
